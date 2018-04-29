@@ -14,11 +14,11 @@ import org.apache.storm.tuple.Values;
 /**
  * 订阅 SplitSentenceBolt的输出流，实现单词计数，并发送当前计数给下一个bolt
  */
-public class WordCountBolt extends BaseRichBolt {
+public class CharacterCountBolt extends BaseRichBolt {
 
     private OutputCollector collector;
 
-    // 存储单词和对应的计数
+    // 存储子母和对应的计数
     private HashMap<String, Long> counts = null; // 注：不可序列化对象需在prepare中实例化
 
     /**
@@ -40,25 +40,25 @@ public class WordCountBolt extends BaseRichBolt {
      * 然后增加计数并存储,发出一个新的词和当前计数组成的二元组。
      * 发射计数作为流允许拓扑的其他bolt订阅和执行额外的处理。
      */
-    public void execute(Tuple input) {
+    public void execute(Tuple tuple) {
 
-        String word = input.getStringByField("word");
-        Long count = this.counts.get(word);
+        String ch = tuple.getStringByField("char");
+        Long count = this.counts.get(ch);
 
         if (count == null) {
             count = 0L;
         }
 
         count++;
-        this.counts.put(word, count);
-        this.collector.emit(new Values(word, count));
+        this.counts.put(ch, count);
+        this.collector.emit(new Values(ch, count));
 
     }
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
         // 声明一个输出流，其中tuple包括了单词和对应的计数，向后发射其他bolt可以订阅这个数据流进一步处理
-        declarer.declare(new Fields("word", "count"));
+        declarer.declare(new Fields("char", "count"));
 
     }
 
